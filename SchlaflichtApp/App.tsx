@@ -20,6 +20,7 @@ import {
   View,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import Icon from 'react-native-vector-icons/MaterialIcons';
 
 import {
   Colors,
@@ -111,9 +112,20 @@ const LampCard = ({
   </View>
 );
 
+type TabKey = 'lamps' | 'profiles' | 'energy';
+
+const TABS: { key: TabKey; label: string; icon: string }[] = [
+  { key: 'lamps', label: 'Lampen', icon: 'lightbulb' },
+  { key: 'profiles', label: 'Profile', icon: 'person' },
+  { key: 'energy', label: 'Energie', icon: 'bolt' },
+];
+
 const App = () => {
   const [lamps, setLamps] = useState<Lamp[] | null>(null);
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState<TabKey>('lamps');
+  const [settingsVisible, setSettingsVisible] = useState(false);
+  const [addVisible, setAddVisible] = useState(false);
   const isDarkMode = useColorScheme() === 'dark';
 
   const backgroundStyle = {
@@ -157,21 +169,76 @@ const App = () => {
         barStyle={isDarkMode ? 'light-content' : 'dark-content'}
         backgroundColor={backgroundStyle.backgroundColor}
       />
-      <View style={{padding: 16, flex: 1}}>
-        <Text style={styles.title}>Schlaflicht Lampen</Text>
-        <FlatList
-          data={lamps}
-          keyExtractor={item => item.id}
-          renderItem={({item}) => (
-            <LampCard
-              lamp={item}
-              onToggle={on => updateLamp(item.id, on)}
-              onDelete={() => deleteLamp(item.id)}
-            />
-          )}
-          contentContainerStyle={{paddingBottom: 40}}
-        />
+      {/* Header mit Titel, Tabs und Settings-Icon */}
+      <View style={{padding: 16, paddingBottom: 0, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between'}}>
+        <Text style={styles.title}>Schlaflicht</Text>
+        <TouchableOpacity onPress={() => setSettingsVisible(true)}>
+          <Icon name="settings" size={28} color="#7c3aed" />
+        </TouchableOpacity>
       </View>
+      <View style={styles.tabBar}>
+        {TABS.map(tab => (
+          <TouchableOpacity
+            key={tab.key}
+            style={[styles.tabBtn, activeTab === tab.key && styles.tabBtnActive]}
+            onPress={() => setActiveTab(tab.key)}>
+            <Icon name={tab.icon} size={22} color={activeTab === tab.key ? '#7c3aed' : '#888'} />
+            <Text style={[styles.tabLabel, activeTab === tab.key && {color: '#7c3aed'}]}>{tab.label}</Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+      <View style={{flex: 1, padding: 16}}>
+        {activeTab === 'lamps' && (
+          <FlatList
+            data={lamps}
+            keyExtractor={item => item.id}
+            renderItem={({item}) => (
+              <LampCard
+                lamp={item}
+                onToggle={on => updateLamp(item.id, on)}
+                onDelete={() => deleteLamp(item.id)}
+              />
+            )}
+            contentContainerStyle={{paddingBottom: 40}}
+          />
+        )}
+        {activeTab === 'profiles' && (
+          <View style={styles.centered}><Text style={{color:'#888'}}>Profile-Tab (in Arbeit)</Text></View>
+        )}
+        {activeTab === 'energy' && (
+          <View style={styles.centered}><Text style={{color:'#888'}}>Energie-Tab (in Arbeit)</Text></View>
+        )}
+      </View>
+      {/* Floating Action Button zum Hinzufügen */}
+      {activeTab === 'lamps' && (
+        <TouchableOpacity style={styles.fab} onPress={() => setAddVisible(true)}>
+          <Icon name="add" size={32} color="#fff" />
+        </TouchableOpacity>
+      )}
+      {/* Settings Modal */}
+      {settingsVisible && (
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalBox}>
+            <Text style={{fontSize:20, fontWeight:'bold', marginBottom:12}}>Einstellungen</Text>
+            <Text style={{color:'#888'}}>Hier können später Einstellungen angepasst werden.</Text>
+            <TouchableOpacity style={styles.modalClose} onPress={() => setSettingsVisible(false)}>
+              <Icon name="close" size={24} color="#fff" />
+            </TouchableOpacity>
+          </View>
+        </View>
+      )}
+      {/* Add Lamp Modal (Platzhalter) */}
+      {addVisible && (
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalBox}>
+            <Text style={{fontSize:20, fontWeight:'bold', marginBottom:12}}>Lampe hinzufügen</Text>
+            <Text style={{color:'#888'}}>Geräte-Discovery und manuelles Hinzufügen folgen.</Text>
+            <TouchableOpacity style={styles.modalClose} onPress={() => setAddVisible(false)}>
+              <Icon name="close" size={24} color="#fff" />
+            </TouchableOpacity>
+          </View>
+        </View>
+      )}
     </SafeAreaView>
   );
 };
@@ -221,6 +288,75 @@ const styles = StyleSheet.create({
     backgroundColor: '#ef4444',
     borderRadius: 8,
     padding: 8,
+  },
+  tabBar: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+    borderBottomWidth: 1,
+    borderColor: '#eee',
+    paddingVertical: 6,
+    marginBottom: 8,
+  },
+  tabBtn: {
+    alignItems: 'center',
+    flex: 1,
+    paddingVertical: 4,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 6,
+  },
+  tabBtnActive: {
+    borderBottomWidth: 2,
+    borderColor: '#7c3aed',
+  },
+  tabLabel: {
+    fontSize: 16,
+    color: '#888',
+    fontWeight: 'bold',
+    marginLeft: 4,
+  },
+  fab: {
+    position: 'absolute',
+    right: 24,
+    bottom: 32,
+    backgroundColor: '#7c3aed',
+    borderRadius: 32,
+    width: 56,
+    height: 56,
+    alignItems: 'center',
+    justifyContent: 'center',
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+  },
+  modalOverlay: {
+    position: 'absolute',
+    left: 0, right: 0, top: 0, bottom: 0,
+    backgroundColor: 'rgba(0,0,0,0.2)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 10,
+  },
+  modalBox: {
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    padding: 24,
+    minWidth: 260,
+    minHeight: 120,
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'relative',
+  },
+  modalClose: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    backgroundColor: '#7c3aed',
+    borderRadius: 16,
+    padding: 4,
   },
 });
 
