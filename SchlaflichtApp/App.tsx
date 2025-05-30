@@ -18,17 +18,10 @@ import {
   TouchableOpacity,
   useColorScheme,
   View,
+  Platform,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import Icon from 'react-native-vector-icons/MaterialIcons';
-
-import {
-  Colors,
-  DebugInstructions,
-  Header,
-  LearnMoreLinks,
-  ReloadInstructions,
-} from 'react-native/Libraries/NewAppScreen';
+// Icons: Unicode Emojis statt vector-icons
 
 interface Lamp {
   id: string;
@@ -80,6 +73,14 @@ async function setLampState(lamp: Lamp, on: boolean) {
   }
 }
 
+const PRIMARY = '#2563eb'; // Blau
+const ACCENT = '#22d3ee'; // Türkis
+const BG = '#f8fafc'; // Sehr helles Grau
+const CARD = '#fff';
+const TEXT = '#222';
+const SUBTLE = '#64748b';
+const DANGER = '#ef4444';
+
 const LampCard = ({
   lamp,
   onToggle,
@@ -103,11 +104,11 @@ const LampCard = ({
     <Switch
       value={!!lamp.isOn}
       onValueChange={onToggle}
-      thumbColor={lamp.isOn ? '#7c3aed' : '#ccc'}
-      trackColor={{false: '#bbb', true: '#a5b4fc'}}
+      thumbColor={lamp.isOn ? PRIMARY : '#ccc'}
+      trackColor={{false: '#cbd5e1', true: ACCENT}}
     />
-    <TouchableOpacity onPress={onDelete} style={styles.deleteBtn}>
-      <Text style={{color: '#fff'}}>🗑️</Text>
+    <TouchableOpacity onPress={onDelete} style={styles.deleteBtn} accessibilityLabel="Lampe löschen">
+      <Text style={{fontSize: 22, color: '#fff'}}>🗑️</Text>
     </TouchableOpacity>
   </View>
 );
@@ -115,9 +116,9 @@ const LampCard = ({
 type TabKey = 'lamps' | 'profiles' | 'energy';
 
 const TABS: { key: TabKey; label: string; icon: string }[] = [
-  { key: 'lamps', label: 'Lampen', icon: 'lightbulb' },
-  { key: 'profiles', label: 'Profile', icon: 'person' },
-  { key: 'energy', label: 'Energie', icon: 'bolt' },
+  { key: 'lamps', label: 'Lampen', icon: '💡' },
+  { key: 'profiles', label: 'Profile', icon: '👤' },
+  { key: 'energy', label: 'Energie', icon: '⚡' },
 ];
 
 const App = () => {
@@ -130,7 +131,7 @@ const App = () => {
 
   const backgroundStyle = {
     flex: 1,
-    backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
+    backgroundColor: BG,
   };
 
   useEffect(() => {
@@ -164,28 +165,32 @@ const App = () => {
     );
 
   return (
-    <SafeAreaView style={backgroundStyle}>
+    <SafeAreaView style={[backgroundStyle, {paddingTop: Platform.OS === 'android' ? 32 : 0}]}> {/* Extra Padding für Android-Statusleiste */}
       <StatusBar
         barStyle={isDarkMode ? 'light-content' : 'dark-content'}
-        backgroundColor={backgroundStyle.backgroundColor}
+        backgroundColor={BG}
       />
       {/* Header mit Titel, Tabs und Settings-Icon */}
-      <View style={{padding: 16, paddingBottom: 0, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between'}}>
-        <Text style={styles.title}>Schlaflicht</Text>
-        <TouchableOpacity onPress={() => setSettingsVisible(true)}>
-          <Icon name="settings" size={28} color="#7c3aed" />
-        </TouchableOpacity>
-      </View>
-      <View style={styles.tabBar}>
-        {TABS.map(tab => (
-          <TouchableOpacity
-            key={tab.key}
-            style={[styles.tabBtn, activeTab === tab.key && styles.tabBtnActive]}
-            onPress={() => setActiveTab(tab.key)}>
-            <Icon name={tab.icon} size={22} color={activeTab === tab.key ? '#7c3aed' : '#888'} />
-            <Text style={[styles.tabLabel, activeTab === tab.key && {color: '#7c3aed'}]}>{tab.label}</Text>
+      <View style={{paddingHorizontal: 0, paddingTop: 0, paddingBottom: 0, backgroundColor: BG}}>
+        <View style={{flexDirection: 'row', alignItems: 'center', justifyContent: 'center', minHeight: 56, position: 'relative'}}>
+          <Text style={styles.title}>Schlaflicht</Text>
+          <TouchableOpacity onPress={() => setSettingsVisible(true)} style={styles.settingsBtn} accessibilityLabel="Einstellungen öffnen">
+            <Text style={{fontSize: 26, color: PRIMARY}}>⚙️</Text>
           </TouchableOpacity>
-        ))}
+        </View>
+        <View style={styles.tabBar}>
+          {TABS.map(tab => (
+            <TouchableOpacity
+              key={tab.key}
+              style={[styles.tabBtn, activeTab === tab.key && styles.tabBtnActive]}
+              onPress={() => setActiveTab(tab.key)}
+              accessibilityLabel={tab.label}
+            >
+              <Text style={{fontSize: 20, marginRight: 4}}>{tab.icon}</Text>
+              <Text style={[styles.tabLabel, activeTab === tab.key && {color: PRIMARY}]}>{tab.label}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
       </View>
       <View style={{flex: 1, padding: 16}}>
         {activeTab === 'lamps' && (
@@ -203,16 +208,16 @@ const App = () => {
           />
         )}
         {activeTab === 'profiles' && (
-          <View style={styles.centered}><Text style={{color:'#888'}}>Profile-Tab (in Arbeit)</Text></View>
+          <View style={styles.centered}><Text style={{color:SUBTLE}}>Profile-Tab (in Arbeit)</Text></View>
         )}
         {activeTab === 'energy' && (
-          <View style={styles.centered}><Text style={{color:'#888'}}>Energie-Tab (in Arbeit)</Text></View>
+          <View style={styles.centered}><Text style={{color:SUBTLE}}>Energie-Tab (in Arbeit)</Text></View>
         )}
       </View>
       {/* Floating Action Button zum Hinzufügen */}
       {activeTab === 'lamps' && (
-        <TouchableOpacity style={styles.fab} onPress={() => setAddVisible(true)}>
-          <Icon name="add" size={32} color="#fff" />
+        <TouchableOpacity style={styles.fab} onPress={() => setAddVisible(true)} accessibilityLabel="Lampe hinzufügen">
+          <Text style={{fontSize: 32, color: '#fff'}}>➕</Text>
         </TouchableOpacity>
       )}
       {/* Settings Modal */}
@@ -220,9 +225,9 @@ const App = () => {
         <View style={styles.modalOverlay}>
           <View style={styles.modalBox}>
             <Text style={{fontSize:20, fontWeight:'bold', marginBottom:12}}>Einstellungen</Text>
-            <Text style={{color:'#888'}}>Hier können später Einstellungen angepasst werden.</Text>
-            <TouchableOpacity style={styles.modalClose} onPress={() => setSettingsVisible(false)}>
-              <Icon name="close" size={24} color="#fff" />
+            <Text style={{color:SUBTLE}}>Hier können später Einstellungen angepasst werden.</Text>
+            <TouchableOpacity style={styles.modalClose} onPress={() => setSettingsVisible(false)} accessibilityLabel="Schließen">
+              <Text style={{fontSize: 22, color: '#fff'}}>❌</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -232,9 +237,9 @@ const App = () => {
         <View style={styles.modalOverlay}>
           <View style={styles.modalBox}>
             <Text style={{fontSize:20, fontWeight:'bold', marginBottom:12}}>Lampe hinzufügen</Text>
-            <Text style={{color:'#888'}}>Geräte-Discovery und manuelles Hinzufügen folgen.</Text>
-            <TouchableOpacity style={styles.modalClose} onPress={() => setAddVisible(false)}>
-              <Icon name="close" size={24} color="#fff" />
+            <Text style={{color:SUBTLE}}>Geräte-Discovery und manuelles Hinzufügen folgen.</Text>
+            <TouchableOpacity style={styles.modalClose} onPress={() => setAddVisible(false)} accessibilityLabel="Schließen">
+              <Text style={{fontSize: 22, color: '#fff'}}>❌</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -263,74 +268,90 @@ const styles = StyleSheet.create({
   container: {flex: 1, backgroundColor: '#f3f4f6', padding: 16},
   centered: {flex: 1, justifyContent: 'center', alignItems: 'center'},
   title: {
-    fontSize: 28,
+    fontSize: 30,
     fontWeight: 'bold',
-    marginBottom: 16,
-    color: '#7c3aed',
+    color: PRIMARY,
     textAlign: 'center',
+    flex: 1,
+    marginTop: 0,
+    marginBottom: 0,
+  },
+  settingsBtn: {
+    position: 'absolute',
+    right: 18,
+    top: 12,
+    padding: 4,
+    zIndex: 2,
   },
   lampCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#fff',
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 12,
+    backgroundColor: CARD,
+    borderRadius: 18,
+    padding: 18,
+    marginBottom: 14,
     shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
+    shadowOpacity: 0.07,
+    shadowRadius: 6,
+    elevation: 3,
   },
-  lampName: {fontSize: 18, fontWeight: 'bold', color: '#222'},
-  lampType: {fontSize: 14, color: '#888', marginTop: 2},
+  lampName: {fontSize: 19, fontWeight: 'bold', color: TEXT},
+  lampType: {fontSize: 14, color: SUBTLE, marginTop: 2},
   deleteBtn: {
-    marginLeft: 12,
-    backgroundColor: '#ef4444',
-    borderRadius: 8,
+    marginLeft: 14,
+    backgroundColor: DANGER,
+    borderRadius: 10,
     padding: 8,
   },
   tabBar: {
     flexDirection: 'row',
     justifyContent: 'space-around',
     alignItems: 'center',
-    backgroundColor: '#fff',
+    backgroundColor: CARD,
     borderBottomWidth: 1,
-    borderColor: '#eee',
-    paddingVertical: 6,
+    borderColor: '#e5e7eb',
+    paddingVertical: 8,
     marginBottom: 8,
+    shadowColor: '#000',
+    shadowOpacity: 0.03,
+    shadowRadius: 2,
+    elevation: 1,
   },
   tabBtn: {
     alignItems: 'center',
     flex: 1,
-    paddingVertical: 4,
+    paddingVertical: 6,
     flexDirection: 'row',
     justifyContent: 'center',
     gap: 6,
+    borderBottomWidth: 2,
+    borderColor: 'transparent',
   },
   tabBtnActive: {
     borderBottomWidth: 2,
-    borderColor: '#7c3aed',
+    borderColor: PRIMARY,
+    backgroundColor: '#e0e7ff',
   },
   tabLabel: {
     fontSize: 16,
-    color: '#888',
+    color: SUBTLE,
     fontWeight: 'bold',
-    marginLeft: 4,
+    marginLeft: 2,
   },
   fab: {
     position: 'absolute',
-    right: 24,
-    bottom: 32,
-    backgroundColor: '#7c3aed',
+    right: 28,
+    bottom: 36,
+    backgroundColor: PRIMARY,
     borderRadius: 32,
-    width: 56,
-    height: 56,
+    width: 60,
+    height: 60,
     alignItems: 'center',
     justifyContent: 'center',
-    elevation: 4,
+    elevation: 5,
     shadowColor: '#000',
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
+    shadowOpacity: 0.18,
+    shadowRadius: 10,
   },
   modalOverlay: {
     position: 'absolute',
