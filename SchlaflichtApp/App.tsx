@@ -11,7 +11,6 @@ import {
   Alert,
   FlatList,
   SafeAreaView,
-  ScrollView,
   StatusBar,
   StyleSheet,
   Switch,
@@ -118,19 +117,9 @@ const App = () => {
   const isDarkMode = useColorScheme() === 'dark';
 
   const backgroundStyle = {
+    flex: 1,
     backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
   };
-
-  /*
-   * To keep the template simple and small we're adding padding to prevent view
-   * from rendering under the System UI.
-   * For bigger apps the recommendation is to use `react-native-safe-area-context`:
-   * https://github.com/AppAndFlow/react-native-safe-area-context
-   *
-   * You can read more about it here:
-   * https://github.com/react-native-community/discussions-and-proposals/discussions/827
-   */
-  const safePadding = '5%';
 
   useEffect(() => {
     loadLamps().then(list => {
@@ -163,39 +152,27 @@ const App = () => {
     );
 
   return (
-    <View style={backgroundStyle}>
+    <SafeAreaView style={backgroundStyle}>
       <StatusBar
         barStyle={isDarkMode ? 'light-content' : 'dark-content'}
         backgroundColor={backgroundStyle.backgroundColor}
       />
-      <ScrollView style={backgroundStyle}>
-        <View style={{paddingRight: safePadding}}>
-          <Header />
-        </View>
-        <View
-          style={{
-            backgroundColor: isDarkMode ? Colors.black : Colors.white,
-            paddingHorizontal: safePadding,
-            paddingBottom: safePadding,
-          }}>
-          <SafeAreaView style={styles.container}>
-            <Text style={styles.title}>Schlaflicht Lampen</Text>
-            <FlatList
-              data={lamps}
-              keyExtractor={item => item.id}
-              renderItem={({item}) => (
-                <LampCard
-                  lamp={item}
-                  onToggle={on => updateLamp(item.id, on)}
-                  onDelete={() => deleteLamp(item.id)}
-                />
-              )}
-              contentContainerStyle={{paddingBottom: 40}}
+      <View style={{padding: 16, flex: 1}}>
+        <Text style={styles.title}>Schlaflicht Lampen</Text>
+        <FlatList
+          data={lamps}
+          keyExtractor={item => item.id}
+          renderItem={({item}) => (
+            <LampCard
+              lamp={item}
+              onToggle={on => updateLamp(item.id, on)}
+              onDelete={() => deleteLamp(item.id)}
             />
-          </SafeAreaView>
-        </View>
-      </ScrollView>
-    </View>
+          )}
+          contentContainerStyle={{paddingBottom: 40}}
+        />
+      </View>
+    </SafeAreaView>
   );
 };
 
