@@ -21,6 +21,8 @@ import {
   Platform,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import Slider from '@react-native-community/slider';
+
 // Icons: Unicode Emojis statt vector-icons
 
 interface Lamp {
@@ -89,36 +91,57 @@ const LampCard = ({
   lamp: Lamp;
   onToggle: (on: boolean) => void;
   onDelete: () => void;
-}) => (
-  <View style={styles.lampCard}>
-    <View style={{flex: 1}}>
-      <Text style={styles.lampName}>{lamp.name}</Text>
-      <Text style={styles.lampType}>
-        {lamp.type === 'dummy'
-          ? 'Demo-Lampe'
-          : lamp.type === 'shelly'
-          ? 'Shelly (LAN)'
-          : lamp.type}
-      </Text>
+}) => {
+  // Dummy brightness state (später persistieren)
+  const [brightness, setBrightness] = React.useState(0.5);
+  return (
+    <View style={styles.lampCard}>
+      <View style={{flex: 1}}>
+        <Text style={styles.lampName}>{lamp.name}</Text>
+        <Text style={styles.lampType}>
+          {lamp.type === 'dummy'
+            ? lamp.isOn ? 'Demo-Lampe' : 'Ausgeschaltet'
+            : lamp.type === 'shelly'
+            ? lamp.isOn ? 'Shelly (LAN)' : 'Ausgeschaltet'
+            : lamp.type}
+        </Text>
+        <Text style={styles.lampLabel}>Helligkeit</Text>
+        <Slider
+          style={{width: '100%', height: 32, marginVertical: 2}}
+          minimumValue={0}
+          maximumValue={1}
+          value={brightness}
+          minimumTrackTintColor={PRIMARY}
+          maximumTrackTintColor={'#e5e7eb'}
+          thumbTintColor={PRIMARY}
+          onValueChange={setBrightness}
+        />
+        <View style={{flexDirection: 'row', justifyContent: 'space-between', marginTop: 8}}>
+          <TouchableOpacity style={styles.lampBtn}>
+            <Text style={styles.lampBtnText}>Timer</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.lampBtn} onPress={onDelete} accessibilityLabel="Lampe löschen">
+            <Text style={styles.lampBtnText}>Löschen</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+      <Switch
+        value={!!lamp.isOn}
+        onValueChange={onToggle}
+        thumbColor={lamp.isOn ? PRIMARY : '#ccc'}
+        trackColor={{false: '#cbd5e1', true: ACCENT}}
+        style={{marginLeft: 12, alignSelf: 'flex-start'}}
+      />
     </View>
-    <Switch
-      value={!!lamp.isOn}
-      onValueChange={onToggle}
-      thumbColor={lamp.isOn ? PRIMARY : '#ccc'}
-      trackColor={{false: '#cbd5e1', true: ACCENT}}
-    />
-    <TouchableOpacity onPress={onDelete} style={styles.deleteBtn} accessibilityLabel="Lampe löschen">
-      <Text style={{fontSize: 22, color: '#fff'}}>🗑️</Text>
-    </TouchableOpacity>
-  </View>
-);
+  );
+};
 
 type TabKey = 'lamps' | 'profiles' | 'energy';
 
 const TABS: { key: TabKey; label: string; icon: string }[] = [
-  { key: 'lamps', label: 'Lampen', icon: '💡' },
-  { key: 'profiles', label: 'Profile', icon: '👤' },
-  { key: 'energy', label: 'Energie', icon: '⚡' },
+  { key: 'lamps', label: 'Lampen', icon: '💡' }, // Glühbirne für Lampen
+  { key: 'profiles', label: 'Profile', icon: '👥' },
+  { key: 'energy', label: 'Energie', icon: '⚡' }, // Blitz für Energie
 ];
 
 const App = () => {
@@ -175,7 +198,7 @@ const App = () => {
         <View style={{flexDirection: 'row', alignItems: 'center', justifyContent: 'center', minHeight: 56, position: 'relative'}}>
           <Text style={styles.title}>Schlaflicht</Text>
           <TouchableOpacity onPress={() => setSettingsVisible(true)} style={styles.settingsBtn} accessibilityLabel="Einstellungen öffnen">
-            <Text style={{fontSize: 26, color: PRIMARY}}>⚙️</Text>
+            <Text style={{fontSize: 26, color: PRIMARY}}>🛠️</Text>
           </TouchableOpacity>
         </View>
         <View style={styles.tabBar}>
@@ -217,7 +240,7 @@ const App = () => {
       {/* Floating Action Button zum Hinzufügen */}
       {activeTab === 'lamps' && (
         <TouchableOpacity style={styles.fab} onPress={() => setAddVisible(true)} accessibilityLabel="Lampe hinzufügen">
-          <Text style={{fontSize: 32, color: '#fff'}}>➕</Text>
+          <Text style={{fontSize: 32, color: '#fff'}}>✚</Text>
         </TouchableOpacity>
       )}
       {/* Settings Modal */}
@@ -285,21 +308,35 @@ const styles = StyleSheet.create({
   },
   lampCard: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     backgroundColor: CARD,
-    borderRadius: 18,
-    padding: 18,
-    marginBottom: 14,
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 18,
     shadowColor: '#000',
     shadowOpacity: 0.07,
-    shadowRadius: 6,
-    elevation: 3,
+    shadowRadius: 8,
+    elevation: 4,
   },
-  lampName: {fontSize: 19, fontWeight: 'bold', color: TEXT},
-  lampType: {fontSize: 14, color: SUBTLE, marginTop: 2},
+  lampName: {fontSize: 20, fontWeight: 'bold', color: TEXT},
+  lampType: {fontSize: 15, color: SUBTLE, marginTop: 2, marginBottom: 8},
+  lampLabel: {fontSize: 15, color: TEXT, marginTop: 2, marginBottom: 0, fontWeight: '500'},
+  lampBtn: {
+    backgroundColor: '#f3f4f6',
+    borderRadius: 8,
+    paddingVertical: 6,
+    paddingHorizontal: 18,
+    marginHorizontal: 2,
+    shadowColor: 'transparent',
+  },
+  lampBtnText: {
+    color: TEXT,
+    fontWeight: '500',
+    fontSize: 15,
+  },
   deleteBtn: {
     marginLeft: 14,
-    backgroundColor: DANGER,
+    backgroundColor: 'transparent', // Kein roter Hintergrund mehr
     borderRadius: 10,
     padding: 8,
   },
