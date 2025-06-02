@@ -26,6 +26,6 @@ android {
 
 dependencies {
     implementation fileTree(dir: "libs", include: ["*.jar"])
-    implementation("com.facebook.react:react-android")
-    // weitere dependencies falls nötig
+    // weitere Libraries, aber KEIN react-native oder react-android hier!
 }
+
