@@ -7,7 +7,7 @@ project.ext.react = [
 android {
     compileSdkVersion 34
 
-    namespace 'com.schlaflichtapp' // <-- passe an, falls gewünscht
+    namespace "com.schlaflichtapp" // <-- passe an, falls gewünscht
 
     defaultConfig {
         applicationId "com.schlaflichtapp" // <-- passe an, falls gewünscht
