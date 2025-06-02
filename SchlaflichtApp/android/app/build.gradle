@@ -7,10 +7,10 @@ project.ext.react = [
 android {
     compileSdkVersion 34
 
-    namespace 'de.fege.schlaflicht' // <-- passe an, falls gewünscht
+    namespace 'com.schlaflicht' // <-- passe an, falls gewünscht
 
     defaultConfig {
-        applicationId "de.fege.schlaflicht" // <-- passe an, falls gewünscht
+        applicationId "com.schlaflicht" // <-- passe an, falls gewünscht
         minSdkVersion 23
         targetSdkVersion 34
         versionCode 1
